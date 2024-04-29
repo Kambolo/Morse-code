@@ -2,48 +2,136 @@
 #include <string.h>
 
 #define BUTTON 2
-
-int startTime = 0;
-int endTime = 0;
+#define TEMPBUTTON 3
 
 bool startStatus = false;
-bool endStatus = false;
+bool wasAdded = false;
 
-void getStartTime();
-void getEndTime();
+String lettersInCode[] = {
+    ".-",
+    "-...",
+    "-.-.",
+    "-..",
+    ".",
+    "..-.",
+    "--.",
+    "....",
+    "..",
+    ".---",
+    "-.-",
+    ".-..",
+    "--",
+    "-.",
+    "---",
+    ".--.",
+    "--.-",
+    ".-.",
+    "...",
+    "-",
+    "..-",
+    "...-",
+    ".--",
+    "-..-",
+    "-.--",
+    "--..",
+};
+char letters[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 
-void setup() {
+String code = "";
+String text = "";
+
+int startTime;
+int pressedTime;
+int count = 0;
+
+int measureUnit = 300;
+
+void addSign();
+void convertToLetter();
+void setStartTime();
+int getEndTime();
+
+void setup()
+{
   Serial.begin(9600);
   pinMode(BUTTON, INPUT_PULLUP);
+  pinMode(TEMPBUTTON, INPUT_PULLUP);
 }
 
-void loop() {
-  attachInterrupt(digitalPinToInterrupt(BUTTON), getStartTime, FALLING);
-  attachInterrupt(digitalPinToInterrupt(BUTTON), getEndTime, RISING);
-  if(startTime != 0 && endTime != 0){
-    Serial.println(endTime - startTime);
+void loop()
+{
+  if (digitalRead(BUTTON) == LOW)
+  {
+    setStartTime();
+  }
+  if (digitalRead(BUTTON) == HIGH)
+  {
+    pressedTime = getEndTime();
+  }
+
+  if (!startStatus && !wasAdded)
+  {
+    addSign();
+  }
+  if (pressedTime > 3 && pressedTime < measureUnit)
+  {
+    count++;
+    if (count == 2)
+    {
+      convertToLetter();
+      count = 0;
+    }
+  }
+}
+
+void setStartTime()
+{
+  if (!startStatus)
+  {
+    startTime = millis();
+    startStatus = true;
+  }
+}
+
+int getEndTime()
+{
+  if (startStatus)
+  {
     startStatus = false;
-    endStatus = false;
-    startTime = 0;
-    endTime = 0;
+    wasAdded = false;
+    return millis() - startTime;
   }
-
+  return -1;
 }
 
-void getStartTime(){
-  Serial.println("start");
-  if(!startStatus){
-      Serial.println("start");
-      startTime = millis();
-      startStatus = true;
+void addSign()
+{
+  if (pressedTime >= measureUnit)
+  {
+    if (pressedTime < 3 * measureUnit)
+    {
+      code += '.';
+      Serial.println(code);
+    }
+    else
+    {
+      code += '-';
+      Serial.println(code);
+    }
+    wasAdded = true;
   }
 }
 
-void getEndTime(){
-   Serial.println("end");
-    if(!endStatus){
-      Serial.println("end");
-      endTime = millis();
-      endStatus = true;
+void convertToLetter()
+{
+  for (int i = 0; i < 25; i++)
+  {
+    if (code == lettersInCode[i])
+    {
+      text += letters[i];
+      Serial.println(text);
+      code = "";
+      return;
+    }
   }
 }
