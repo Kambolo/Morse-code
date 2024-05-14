@@ -47,7 +47,6 @@ String text = "";
 int startTime;
 int pressedTime;
 int count = 0;
-int clear = 0;
 
 int measureUnit = 150;
 
@@ -85,19 +84,13 @@ void loop()
   if (pressedTime > 3 && pressedTime < measureUnit)
   {
     count++;
-    clear++;
     if (count == 2)
     {
       convertToLetter();
       count = 0;
     }
-    if(clear == 3){
-      text ="";
-      code="";
-      updateLCD();
-      clear=0;
-    }
   }
+  
 }
 
 void setStartTime()
